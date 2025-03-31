@@ -138,26 +138,31 @@ services:
       - SYS_NICE
 
   nextjs:
-    image: node:18
-    working_dir: /app
+    build:
+      context: ./sites/jx099
+      dockerfile: Dockerfile
+    image: jx099-nextjs
+    container_name: jx099-nextjs
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL="mysql://root:mysql_jYAwsS@207.211.179.194:3306/jx099?connection_limit=5&pool_timeout=2&charset=utf8mb4_unicode_ci&max_allowed_packet=16777216"
+      - NEXTAUTH_SECRET=8KQzp2nx893KJFmxnv6uqwerty12378HOPxmMs4
+      - NEXTAUTH_URL=https://ceshi.jx099.com
+      - ADMIN_SETUP_KEY=8KQzp2nx893KJFmxnv6uqwerty12378HOPxmMs4
+      - NODE_ENV=production
     volumes:
       - ./sites/jx099:/app
-    command: >
-      bash -c "npm install
-      && npm run build
-      && npm run start"
-    environment:
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - NEXTAUTH_URL=${NEXTAUTH_URL}
-      - DATABASE_URL=mysql://root:${MYSQL_ROOT_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
-      - NODE_ENV=${NODE_ENV}
-      - PORT=3000
-    depends_on:
-      - mysql
-    restart: always
+      - ./index/uploads:/app/public/uploads
+      - ./index/prisma:/app/prisma
+      - ./ssl:/app/ssl
     networks:
-      - app_network
+      - openresty_net
+    user: "1000:1000"
 
 networks:
   app_network:
     driver: bridge
+  openresty_net:
+    external: true
