@@ -123,14 +123,10 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      # MySQL root 用户密码，建议使用强密码
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      # 默认创建的数据库名称
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-      # 数据库字符集，推荐使用 utf8mb4
-      MYSQL_CHARACTER_SET_SERVER: ${MYSQL_CHARACTER_SET_SERVER}
-      # 数据库排序规则，推荐使用 utf8mb4_unicode_ci
-      MYSQL_COLLATION_SERVER: ${MYSQL_COLLATION_SERVER}
+      MYSQL_CHARACTER_SET_SERVER: ${MYSQL_CHARSET}
+      MYSQL_COLLATION_SERVER: ${MYSQL_COLLATION}
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/conf.d:/etc/mysql/conf.d
@@ -151,16 +147,11 @@ services:
       && npm run build
       && npm run start"
     environment:
-      # NextAuth.js 加密密钥，用于加密会话和令牌
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      # NextAuth.js 回调 URL，用于认证流程
       - NEXTAUTH_URL=${NEXTAUTH_URL}
-      # Prisma 数据库连接 URL
-      - DATABASE_URL=${DATABASE_URL}
-      # Node.js 运行环境，可选值：development, production
+      - DATABASE_URL=mysql://root:${MYSQL_ROOT_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
       - NODE_ENV=${NODE_ENV}
-      # Next.js 应用监听端口
-      - PORT=${PORT}
+      - PORT=3000
     depends_on:
       - mysql
     restart: always

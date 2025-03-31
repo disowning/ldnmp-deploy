@@ -81,17 +81,25 @@ apt install -y docker-compose
 echo -e "${YELLOW}配置 SSL 证书...${NC}"
 apt install -y certbot
 
-# 强制更新证书
-echo -e "${YELLOW}申请/更新 SSL 证书...${NC}"
-certbot certonly --standalone --non-interactive --force-renewal \
-    -d "$DOMAIN" \
-    --email "$EMAIL" \
-    --agree-tos \
-    --no-eff-email
+# 检查证书是否存在且有效
+if [ -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
+    echo -e "${YELLOW}证书已存在，跳过申请步骤${NC}"
+else
+    # 申请新证书
+    echo -e "${YELLOW}申请 SSL 证书...${NC}"
+    certbot certonly --standalone --non-interactive \
+        -d "$DOMAIN" \
+        --email "$EMAIL" \
+        --agree-tos \
+        --no-eff-email
+fi
 
 # 确保证书目录存在
 if [ ! -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
     echo -e "${RED}错误：SSL 证书申请失败${NC}"
+    echo -e "${YELLOW}提示：由于 Let's Encrypt 速率限制，请稍后再试${NC}"
+    echo "或者手动申请证书："
+    echo "certbot certonly --standalone -d $DOMAIN --email $EMAIL --agree-tos --no-eff-email"
     exit 1
 fi
 
@@ -104,16 +112,16 @@ cp "/etc/letsencrypt/live/${DOMAIN}/privkey.pem" nginx/ssl/key.pem
 # 克隆项目代码
 echo -e "${YELLOW}克隆项目代码...${NC}"
 if [ ! -d "sites/jx099/.git" ]; then
-    # 使用变量中的仓库地址，而不是从 .env 文件读取
+    # 使用 HTTPS 方式克隆，并禁用认证提示
     echo -e "${YELLOW}正在从 $GITHUB_REPO 克隆代码...${NC}"
-    if ! git clone "$GITHUB_REPO" sites/jx099; then
+    GIT_TERMINAL_PROMPT=0 git clone "$GITHUB_REPO" sites/jx099 || {
         echo -e "${RED}项目代码克隆失败。${NC}"
         echo "请检查仓库地址是否正确："
         echo "$GITHUB_REPO"
         echo -e "${YELLOW}提示：如果是私有仓库，请使用 Personal Access Token${NC}"
         echo "格式：https://your-token@github.com/username/repo.git"
         exit 1
-    fi
+    }
 fi
 
 # 启动服务
