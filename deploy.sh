@@ -104,14 +104,13 @@ cp "/etc/letsencrypt/live/${DOMAIN}/privkey.pem" nginx/ssl/key.pem
 # 克隆项目代码
 echo -e "${YELLOW}克隆项目代码...${NC}"
 if [ ! -d "sites/jx099/.git" ]; then
-    # 如果是私有仓库，提供使用 Personal Access Token 的说明
-    if [[ $GITHUB_REPO == *"github.com"* ]]; then
-        echo -e "${YELLOW}如果是私有仓库，请使用 Personal Access Token:${NC}"
-        echo "格式: https://your-token@github.com/username/repo.git"
-    fi
-    git clone "$GITHUB_REPO" sites/jx099
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}警告：项目代码克隆失败。您需要手动部署代码到 sites/jx099 目录${NC}"
+    # 确保使用 HTTPS 并跳过认证
+    REPO_URL=$(echo "$GITHUB_REPO" | sed 's/git@github.com:/https:\/\/github.com\//g')
+    if ! GIT_TERMINAL_PROMPT=0 git clone "$REPO_URL" sites/jx099; then
+        echo -e "${RED}项目代码克隆失败。${NC}"
+        echo "请检查仓库地址是否正确："
+        echo "$REPO_URL"
+        exit 1
     fi
 fi
 
