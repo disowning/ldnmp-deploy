@@ -6,6 +6,16 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# 检查参数
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo -e "${RED}错误：请提供域名和邮箱${NC}"
+    echo "使用方法: $0 your-domain.com your-email@example.com"
+    exit 1
+fi
+
+DOMAIN=$1
+EMAIL=$2
+
 # 错误处理函数
 handle_error() {
     echo -e "${RED}错误: $1${NC}"
@@ -79,15 +89,17 @@ setup_ssl() {
     # 安装 certbot
     apt install -y certbot || handle_error "Certbot 安装失败"
     
-    # 获取域名
-    read -p "请输入域名: " domain
-    
     # 申请证书
-    certbot certonly --standalone -d $domain || handle_error "SSL 证书申请失败"
+    certbot certonly --standalone \
+        -d $DOMAIN \
+        --email $EMAIL \
+        --agree-tos \
+        --no-eff-email \
+        --non-interactive || handle_error "SSL 证书申请失败"
     
     # 复制证书
-    cp /etc/letsencrypt/live/$domain/fullchain.pem /www/wwwroot/nginx/ssl/cert.pem || handle_error "证书复制失败"
-    cp /etc/letsencrypt/live/$domain/privkey.pem /www/wwwroot/nginx/ssl/key.pem || handle_error "私钥复制失败"
+    cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /www/wwwroot/nginx/ssl/cert.pem || handle_error "证书复制失败"
+    cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /www/wwwroot/nginx/ssl/key.pem || handle_error "私钥复制失败"
 }
 
 # 配置环境变量
@@ -104,7 +116,7 @@ setup_env() {
     # 更新环境变量
     sed -i "s/your_strong_password/$mysql_password/" .env
     sed -i "s/your_secret_key/$nextauth_secret/" .env
-    sed -i "s/your-domain.com/$domain/" .env
+    sed -i "s/your-domain.com/$DOMAIN/" .env
 }
 
 # 启动服务
@@ -157,7 +169,7 @@ main() {
     
     echo -e "${GREEN}部署完成！${NC}"
     echo -e "${GREEN}请检查以下内容：${NC}"
-    echo "1. 访问 https://$domain 确认网站是否正常运行"
+    echo "1. 访问 https://$DOMAIN 确认网站是否正常运行"
     echo "2. 检查 docker-compose ps 确认所有服务是否正常"
     echo "3. 检查 /root/credentials.txt 保存的密码"
     echo "4. 查看 docker-compose logs 检查是否有错误"
