@@ -111,15 +111,17 @@ cp "/etc/letsencrypt/live/${DOMAIN}/privkey.pem" nginx/ssl/key.pem
 
 # 克隆项目代码
 echo -e "${YELLOW}克隆项目代码...${NC}"
-if [ ! -d "sites/jx099/.git" ]; then
-    # 使用 HTTPS 方式克隆，并禁用认证提示
-    echo -e "${YELLOW}正在从 $GITHUB_REPO 克隆代码...${NC}"
-    GIT_TERMINAL_PROMPT=0 git clone "$GITHUB_REPO" sites/jx099 || {
+if [ -d "sites/jx099" ]; then
+    echo -e "${YELLOW}项目目录已存在，跳过克隆...${NC}"
+else
+    echo -e "${YELLOW}正在从 ${GITHUB_REPO} 克隆代码...${NC}"
+    GIT_TERMINAL_PROMPT=0 git clone ${GITHUB_REPO} sites/jx099 || {
         echo -e "${RED}项目代码克隆失败。${NC}"
-        echo "请检查仓库地址是否正确："
-        echo "$GITHUB_REPO"
+        echo -e "${YELLOW}请检查仓库地址是否正确：${NC}"
+        echo "${GITHUB_REPO}"
         echo -e "${YELLOW}提示：如果是私有仓库，请使用 Personal Access Token${NC}"
-        echo "格式：https://your-token@github.com/username/repo.git"
+        echo -e "${YELLOW}格式：https://your-token@github.com/username/repo.git${NC}"
+        echo -e "${YELLOW}或者手动克隆仓库到 sites/jx099 目录${NC}"
         exit 1
     }
 fi
