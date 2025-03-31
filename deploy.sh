@@ -9,12 +9,13 @@ NC='\033[0m'
 # 检查参数
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo -e "${RED}错误：请提供域名和邮箱${NC}"
-    echo "使用方法: $0 your-domain.com your-email@example.com"
+    echo "使用方法: $0 your-domain.com your-email@example.com [github-repo-url]"
     exit 1
 fi
 
 DOMAIN=$1
 EMAIL=$2
+GITHUB_REPO=${3:-"https://github.com/disowning/next-app-template.git"}  # 设置默认仓库或用户提供的仓库
 
 echo -e "${GREEN}开始部署 LDNMP 环境...${NC}"
 
@@ -55,7 +56,7 @@ DOMAIN=${DOMAIN}
 SSL_EMAIL=${EMAIL}
 
 # GitHub 仓库
-GITHUB_REPO=https://github.com/your-username/your-repo.git
+GITHUB_REPO=${GITHUB_REPO}
 
 # Node 环境
 NODE_ENV=production
@@ -103,7 +104,15 @@ cp "/etc/letsencrypt/live/${DOMAIN}/privkey.pem" nginx/ssl/key.pem
 # 克隆项目代码
 echo -e "${YELLOW}克隆项目代码...${NC}"
 if [ ! -d "sites/jx099/.git" ]; then
-    git clone $(grep GITHUB_REPO .env | cut -d= -f2) sites/jx099
+    # 如果是私有仓库，提供使用 Personal Access Token 的说明
+    if [[ $GITHUB_REPO == *"github.com"* ]]; then
+        echo -e "${YELLOW}如果是私有仓库，请使用 Personal Access Token:${NC}"
+        echo "格式: https://your-token@github.com/username/repo.git"
+    fi
+    git clone "$GITHUB_REPO" sites/jx099
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}警告：项目代码克隆失败。您需要手动部署代码到 sites/jx099 目录${NC}"
+    fi
 fi
 
 # 启动服务
