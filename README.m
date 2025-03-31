@@ -11,7 +11,7 @@
 
 2. 一键部署：
 ```bash
-curl -fsSL https://raw.githubusercontent.com/你的用户名/ldnmp-deploy/main/deploy.sh | bash
+curl -fsSL https://raw.githubusercontent.com/disowning/ldnmp-deploy/main/deploy.sh | bash
 ```
 
 ## 包含功能
