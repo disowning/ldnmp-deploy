@@ -114,16 +114,38 @@ echo -e "${YELLOW}克隆项目代码...${NC}"
 if [ -d "sites/jx099" ]; then
     echo -e "${YELLOW}项目目录已存在，跳过克隆...${NC}"
 else
-    echo -e "${YELLOW}正在从 ${GITHUB_REPO} 克隆代码...${NC}"
-    GIT_TERMINAL_PROMPT=0 git clone ${GITHUB_REPO} sites/jx099 || {
-        echo -e "${RED}项目代码克隆失败。${NC}"
-        echo -e "${YELLOW}请检查仓库地址是否正确：${NC}"
-        echo "${GITHUB_REPO}"
-        echo -e "${YELLOW}提示：如果是私有仓库，请使用 Personal Access Token${NC}"
-        echo -e "${YELLOW}格式：https://your-token@github.com/username/repo.git${NC}"
-        echo -e "${YELLOW}或者手动克隆仓库到 sites/jx099 目录${NC}"
-        exit 1
-    }
+    echo -e "${YELLOW}请选择克隆方式：${NC}"
+    echo "1. 使用默认仓库 (${GITHUB_REPO})"
+    echo "2. 手动克隆仓库"
+    echo "3. 跳过克隆"
+    read -p "请选择 (1-3): " clone_choice
+
+    case $clone_choice in
+        1)
+            echo -e "${YELLOW}正在从 ${GITHUB_REPO} 克隆代码...${NC}"
+            GIT_TERMINAL_PROMPT=0 git clone ${GITHUB_REPO} sites/jx099 || {
+                echo -e "${RED}项目代码克隆失败。${NC}"
+                echo -e "${YELLOW}请检查仓库地址是否正确：${NC}"
+                echo "${GITHUB_REPO}"
+                echo -e "${YELLOW}提示：如果是私有仓库，请使用 Personal Access Token${NC}"
+                echo -e "${YELLOW}格式：https://your-token@github.com/username/repo.git${NC}"
+                exit 1
+            }
+            ;;
+        2)
+            echo -e "${YELLOW}请手动克隆仓库到 sites/jx099 目录${NC}"
+            echo -e "${YELLOW}示例命令：${NC}"
+            echo "cd /www/wwwroot/jx099"
+            echo "git clone https://github.com/your-username/your-repo.git sites/jx099"
+            read -p "按回车键继续..."
+            ;;
+        3)
+            echo -e "${YELLOW}跳过克隆步骤...${NC}"
+            ;;
+        *)
+            echo -e "${RED}无效的选择，跳过克隆步骤...${NC}"
+            ;;
+    esac
 fi
 
 # 启动服务
