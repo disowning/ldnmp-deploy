@@ -80,14 +80,22 @@ apt install -y docker-compose
 echo -e "${YELLOW}配置 SSL 证书...${NC}"
 apt install -y certbot
 
-# 检查证书是否已存在
-if [ -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
-    echo -e "${YELLOW}证书已存在，跳过申请步骤${NC}"
-else
-    certbot certonly --standalone --non-interactive -d "$DOMAIN" --email "$EMAIL" --agree-tos --no-eff-email
+# 强制更新证书
+echo -e "${YELLOW}申请/更新 SSL 证书...${NC}"
+certbot certonly --standalone --non-interactive --force-renewal \
+    -d "$DOMAIN" \
+    --email "$EMAIL" \
+    --agree-tos \
+    --no-eff-email
+
+# 确保证书目录存在
+if [ ! -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
+    echo -e "${RED}错误：SSL 证书申请失败${NC}"
+    exit 1
 fi
 
 # 复制证书（确保目录存在）
+echo -e "${YELLOW}复制 SSL 证书...${NC}"
 mkdir -p nginx/ssl
 cp "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" nginx/ssl/cert.pem
 cp "/etc/letsencrypt/live/${DOMAIN}/privkey.pem" nginx/ssl/key.pem
