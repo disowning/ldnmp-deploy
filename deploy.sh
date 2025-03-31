@@ -15,7 +15,7 @@ fi
 
 DOMAIN=$1
 EMAIL=$2
-GITHUB_REPO=${3:-"https://github.com/disowning/next-app-template.git"}  # 设置默认仓库或用户提供的仓库
+GITHUB_REPO=${3:-"https://github.com/disowning/Sprunkin-Games-12.git"}  # 更新默认仓库地址
 
 echo -e "${GREEN}开始部署 LDNMP 环境...${NC}"
 
